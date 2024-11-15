@@ -3,7 +3,7 @@
 **DishDelight** meals app allows users to browse, search, and explore meal recipes. Users can filter recipes by category (like Area, lunch, or dessert) or ingredients. Each meal includes a description, a list of ingredients, and cooking instructions, along with a picture of the dish. This app leverages a public recipe API to fetch meal data and display it.
 
 ## Live Demo
-<a href="https://username.github.io/repo/" target="_blank" rel="noopener noreferrer">Here</a> you can find the live Demo of the website
+<a href="https://dishdelight-frontend.onrender.com/" target="_blank" rel="noopener noreferrer">Here</a> you can find the live Demo of the website
 
 ## Built With 🔨
 
