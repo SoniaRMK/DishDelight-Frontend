@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import "./searchView.css";
 
 const areas = [
   "American",
@@ -49,20 +50,34 @@ const categories = [
   "Vegetarian",
 ];
 
+/**
+ * SearchView component for searching meals based on various criteria.
+ *
+ * @param {Object} props - The component props.
+ * @param {Function} props.onSearch - Callback function to handle search requests.
+ * @returns {JSX.Element} The rendered SearchView component.
+ */
 export const SearchView = ({ onSearch }) => {
   const [searchType, setSearchType] = useState("category");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
+  /**
+   * Handles the search button click event by invoking the `onSearch` callback.
+   */
   const handleSearch = () => {
     onSearch(searchType, query);
   };
 
+  /**
+   * Updates the query state and provides suggestions based on the selected search type.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleQueryChange = (e) => {
     const value = e.target.value;
     setQuery(value);
 
-    // Display suggestions based on the selected search type
     if (searchType === "area") {
       setSuggestions(
         areas.filter((area) =>
@@ -81,8 +96,8 @@ export const SearchView = ({ onSearch }) => {
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center mt-5 mb-5">
-      <Row className="w-100">
+    <Container className="search-view-container">
+      <Row className="justify-content-center w-100">
         <Col xs={12} md={8} lg={6} className="position-relative">
           <Form.Group className="d-flex">
             <Form.Select
@@ -107,15 +122,11 @@ export const SearchView = ({ onSearch }) => {
           </Form.Group>
 
           {suggestions.length > 0 && (
-            <div
-              className="suggestions-dropdown position-absolute w-100 bg-white border mt-1"
-              style={{ zIndex: 1000 }}
-            >
+            <div className="suggestions-dropdown">
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className="p-2 suggestion-item"
-                  style={{ cursor: "pointer" }}
+                  className="suggestion-item"
                   onClick={() => {
                     setQuery(suggestion);
                     setSuggestions([]);

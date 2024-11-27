@@ -1,52 +1,71 @@
 import React, { useState } from "react";
-import { Button, Form, Container, Card } from "react-bootstrap";
+import { Button, Form, Container, Card, Alert, Spinner } from "react-bootstrap";
+import { userLogin } from "../../hooks/userLogin";
+import "./loginView.css"; // Import the CSS file
 
-export const LoginView = ({ onLoggedIn }) => {
-  const [Email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
+/**
+ * Props for the `LoginView` component.
+ * 
+ * @typedef {Object} LoginViewProps
+ * @property {function(Object, string): void} onLoggedIn - Callback triggered when a user successfully logs in.
+ * It receives the logged-in user object and the authentication token as parameters.
+ * @property {boolean} showAlert - Indicates whether to display a success alert upon successful login.
+ */
 
-  const handleSubmit = (event) => {
+/**
+ * A React component for the login view.
+ *
+ * This component renders a login form with email and password fields. It integrates with the
+ * `userLogin` hook to handle authentication. Displays loading state, error messages, and success alerts.
+ *
+ * @param {LoginViewProps} props - Props passed to the component.
+ * @returns {JSX.Element} The rendered login view.
+ */
+export const LoginView = ({ onLoggedIn, showAlert }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, loading, error } = userLogin();
+
+  /**
+   * Handles form submission for login.
+   *
+   * Prevents the default form submission behavior, invokes the `login` function
+   * from the `userLogin` hook, and stores the user and token in local storage if successful.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} event - The form submission event.
+   * @returns {Promise<void>}
+   */
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    const result = await login(email, password);
 
-    const data = {
-      email: Email,
-      password: Password,
-    };
-
-    fetch("https://dishdelight-backend.onrender.com/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user.username));
-          localStorage.setItem("token", data.token);
-          onLoggedIn(data.user, data.token);
-        } else {
-          alert("No such user");
-        }
-      })
-      .catch(() => {
-        alert("Something went wrong");
-      });
+    if (result) {
+      localStorage.setItem("user", JSON.stringify(result.user.username));
+      localStorage.setItem("token", result.token);
+      onLoggedIn(result.user, result.token);
+    }
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center min-vh-100">
-      <Card className="p-4 shadow-lg" style={{ width: "100%", maxWidth: "400px" }}>
+    <Container className="login-container d-flex justify-content-center align-items-center">
+      <Card className="login-card shadow-lg">
         <Card.Body>
           <h3 className="text-center mb-4">Login</h3>
+          {showAlert && (
+            <Alert variant="success" dismissible>
+              Successfully logged in...
+            </Alert>
+          )}
+
+          {error && <Alert variant="danger">{error}</Alert>}
+
           <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formUsername" className="mb-3">
+            <Form.Group controlId="formEmail" className="mb-3">
               <Form.Label className="visually-hidden">Email:</Form.Label>
               <Form.Control
                 type="email"
                 placeholder="Enter your email"
-                value={Email}
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
@@ -57,14 +76,14 @@ export const LoginView = ({ onLoggedIn }) => {
               <Form.Control
                 type="password"
                 placeholder="Enter your password"
-                value={Password}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100">
-              Login
+            <Button variant="primary" type="submit" className="w-100" disabled={loading}>
+              {loading ? <Spinner animation="border" size="sm" /> : "Login"}
             </Button>
           </Form>
         </Card.Body>

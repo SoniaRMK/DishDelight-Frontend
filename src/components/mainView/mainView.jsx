@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationBar } from "../navbar/NavBar";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -11,35 +10,40 @@ import { MealView } from "../mealView/mealView";
 import { ProfileView } from "../profileView/profileView";
 import { SearchView } from "../searchView/searchView";
 
+/**
+ * Represents the main application view.
+ *
+ * The `MainView` component is responsible for handling user authentication, fetching meals,
+ * managing search functionality, and rendering appropriate views based on the current route.
+ *
+ * @returns {JSX.Element} The rendered MainView component.
+ */
 export const MainView = () => {
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const storedToken = localStorage.getItem("token");
   const [user, setUser] = useState(storedUser ? storedUser : null);
+  const [showAlert, setShowAlert] = useState(false);
   const [token, setToken] = useState(storedToken ? storedToken : null);
   const [meals, setMeals] = useState([]);
   const [favoriteMeals, setFavoriteMeals] = useState([]);
+
   const mealDBBaseUrl = "https://www.themealdb.com/api/json/v1/1";
 
   useEffect(() => {
     fetch(`${mealDBBaseUrl}/filter.php/?c=Seafood`)
       .then((response) => response.json())
       .then((data) => {
-        const mealsApi = data.meals.map((meal) => {
-          return {
-            id: meal.idMeal,
-            name: meal.strMeal,
-            image: meal.strMealThumb,
-          };
-        });
+        const mealsApi = data.meals.map((meal) => ({
+          id: meal.idMeal,
+          name: meal.strMeal,
+          image: meal.strMealThumb,
+        }));
         setMeals(mealsApi);
       })
-      .catch((e) => {
-        console.log(e);
-      });
+      .catch((e) => console.error(e));
   }, []);
 
-  // Fetch favorite meals only if user is authenticated
   useEffect(() => {
     if (token) {
       fetch("https://dishdelight-backend.onrender.com/favorites", {
@@ -49,28 +53,28 @@ export const MainView = () => {
       })
         .then((response) => {
           if (!response.ok) {
-            console.log(response);
             throw new Error("Failed to fetch favorites");
           }
           return response.json();
         })
         .then((data) => {
-          console.log(data);
-          const favMeals = data.map((meal) => {
-            return {
-              id: meal.meal_id,
-              name: meal.meal_name,
-              image: meal.image_url,
-            };
-          });
+          const favMeals = data.map((meal) => ({
+            id: meal.meal_id,
+            name: meal.meal_name,
+            image: meal.image_url,
+          }));
           setFavoriteMeals(favMeals);
         })
-        .catch((e) => {
-          console.log(e);
-        });
+        .catch((e) => console.error(e));
     }
   }, [token]);
 
+  /**
+   * Handles meal search based on the specified type and query.
+   *
+   * @param {"category"|"area"|"ingredient"|"firstLetter"} type - The type of search to perform.
+   * @param {string} query - The query string to search for.
+   */
   const handleSearch = (type, query) => {
     let url = "";
 
@@ -88,37 +92,47 @@ export const MainView = () => {
         url = `${mealDBBaseUrl}/search.php?f=${query}`;
         break;
       default:
-        break;
+        return;
     }
 
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
-        const mealsApi = data.meals.map((meal) => {
-          return {
-            id: meal.idMeal,
-            name: meal.strMeal,
-            image: meal.strMealThumb,
-          };
-        });
+        const mealsApi = data.meals.map((meal) => ({
+          id: meal.idMeal,
+          name: meal.strMeal,
+          image: meal.strMealThumb,
+        }));
         setMeals(mealsApi);
       })
-      .catch((error) => console.log("Error fetching meals:", error));
+      .catch((error) => console.error("Error fetching meals:", error));
   };
 
+  /**
+   * Handles user logout.
+   */
   const onLoggedOut = () => {
     setUser(null);
     setToken(null);
     localStorage.clear();
   };
 
+  /**
+   * Handles successful user login.
+   *
+   * @param {Object} user - The logged-in user's information.
+   * @param {string} token - The authentication token for the user.
+   */
   const onLoggedIn = (user, token) => {
     setUser(user);
     setToken(token);
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("token", token);
-    alert("Successfully logged in...");
-    navigate("/");
+    setShowAlert(true);
+    setTimeout(() => {
+      setShowAlert(false);
+      navigate("/");
+    }, 1000);
   };
 
   return (
@@ -129,21 +143,17 @@ export const MainView = () => {
           <Route
             path="/login"
             element={
-              <>
-                <Col md={5}>
-                  <LoginView onLoggedIn={onLoggedIn} />
-                </Col>
-              </>
+              <Col md={5}>
+                <LoginView onLoggedIn={onLoggedIn} showAlert={showAlert} />
+              </Col>
             }
           />
           <Route
             path="/signup"
             element={
-              <>
-                <Col md={5}>
-                  <SignupView />
-                </Col>
-              </>
+              <Col md={5}>
+                <SignupView />
+              </Col>
             }
           />
           <Route
@@ -163,25 +173,30 @@ export const MainView = () => {
           <Route
             path="/meals/:mealName"
             element={
-              <>
-                <Col md={12}>
-                  <MealView token={token} />
-                </Col>
-              </>
+              <Col md={12}>
+                <MealView token={token} />
+              </Col>
             }
           />
           <Route
             path="/users/:Username"
             element={
-              <>
-                {!user ? (
-                  <Navigate to="/login" replace />
-                ) : (
-                  <Col>
-                    <ProfileView favoriteMeals={favoriteMeals} token={token} />
-                  </Col>
-                )}
-              </>
+              !user ? (
+                <Navigate to="/login" replace />
+              ) : (
+                <Col>
+                  <ProfileView favoriteMeals={favoriteMeals} token={token} />
+                </Col>
+              )
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <Col md={5} className="text-center mt-5">
+                <h1>404</h1>
+                <p>Page Not Found</p>
+              </Col>
             }
           />
         </Routes>

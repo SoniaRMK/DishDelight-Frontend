@@ -1,0 +1,36 @@
+/* SearchView.css */
+
+/* Centering the container with vertical and horizontal spacing */
+.search-view-container {
+    margin-top: 3rem; /* Replaces 'mt-5' */
+    margin-bottom: 3rem; /* Replaces 'mb-5' */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Styling for the dropdown suggestions */
+  .suggestions-dropdown {
+    position: absolute;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #dee2e6; /* Matches Bootstrap's border color */
+    margin-top: 0.25rem; /* Replaces 'mt-1' */
+    z-index: 1000;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Adds subtle shadow */
+    border-radius: 0.25rem; /* Matches Bootstrap's rounded corners */
+    overflow-y: auto;
+    max-height: 200px; /* Prevents overflow if there are too many suggestions */
+  }
+  
+  /* Styling for individual suggestion items */
+  .suggestion-item {
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .suggestion-item:hover {
+    background-color: #f8f9fa; /* Light gray hover effect */
+  }
+  

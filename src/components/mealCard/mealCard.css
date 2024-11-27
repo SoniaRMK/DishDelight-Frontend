@@ -1,0 +1,11 @@
+/* mealCard.css */
+
+.meal-card-img {
+    height: 150px;
+    object-fit: cover;
+  }
+  
+  .meal-card-title {
+    font-size: 1rem;
+  }
+  

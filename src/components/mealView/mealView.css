@@ -1,0 +1,23 @@
+/* MealView.css */
+
+/* Centering container with spacing */
+.meal-view-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem; /* Replaces inline 'my-5' */
+  }
+  
+  /* Styling for the meal card */
+  .meal-view-card {
+    width: 100%;
+    max-width: 600px; /* Replaces inline 'style' */
+  }
+  
+  /* Action button group alignment */
+  .meal-view-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem; /* Replaces inline 'mt-4' */
+  }
+  

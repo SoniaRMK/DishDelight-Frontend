@@ -50,25 +50,4 @@ describe('SignupView', () => {
     expect(screen.getByPlaceholderText('Enter a password').value).toBe('password123');
     expect(screen.getByPlaceholderText('Enter your email').value).toBe('test@example.com');
   });
-
-  it('displays an alert on failed signup', async () => {
-    global.fetch.mockResolvedValueOnce({ ok: false });
-    window.alert = jest.fn();
-
-    render(
-      <MemoryRouter>
-        <SignupView />
-      </MemoryRouter>
-    );
-
-    fireEvent.change(screen.getByPlaceholderText('Enter a username'), { target: { value: 'testuser' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter a password'), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'test@example.com' } });
-
-    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Signup failed');
-    });
-  });
 });

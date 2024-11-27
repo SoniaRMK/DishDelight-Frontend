@@ -1,0 +1,22 @@
+/* General styling for the login container */
+.login-container {
+    min-height: 100vh;
+  }
+  
+  /* Styling for the card */
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 1.5rem;
+  }
+  
+  /* Center text for the title */
+  .login-card h3 {
+    text-align: center;
+  }
+  
+  /* Customize the alert spacing if needed */
+  .alert {
+    margin-bottom: 1rem;
+  }
+  

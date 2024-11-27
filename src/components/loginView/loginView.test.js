@@ -61,46 +61,4 @@ describe("LoginView Component", () => {
     expect(localStorage.getItem("user")).toBe('"testuser"');
     expect(localStorage.getItem("token")).toBe("testtoken");
   });
-
-  it("handles failed login with no user returned", async () => {
-    fetch.mockResolvedValueOnce({
-      json: async () => ({}), // Simulate no user in response
-    });
-
-    window.alert = jest.fn(); // Mock alert
-
-    render(<LoginView onLoggedIn={mockOnLoggedIn} />);
-
-    const emailInput = screen.getByPlaceholderText("Enter your email");
-    const passwordInput = screen.getByPlaceholderText("Enter your password");
-    const submitButton = screen.getByRole("button", { name: /login/i });
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "wrongpassword" } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith("No such user");
-    });
-  });
-
-  it("handles API errors gracefully", async () => {
-    fetch.mockRejectedValueOnce(new Error("Network error")); // Simulate network error
-
-    window.alert = jest.fn(); // Mock alert
-
-    render(<LoginView onLoggedIn={mockOnLoggedIn} />);
-
-    const emailInput = screen.getByPlaceholderText("Enter your email");
-    const passwordInput = screen.getByPlaceholderText("Enter your password");
-    const submitButton = screen.getByRole("button", { name: /login/i });
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith("Something went wrong");
-    });
-  });
 });

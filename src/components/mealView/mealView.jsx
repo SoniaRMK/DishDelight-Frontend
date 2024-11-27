@@ -1,145 +1,66 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Button, Container, Card, Badge } from "react-bootstrap";
+import { Button, Container, Card, Badge, Alert } from "react-bootstrap";
+import { useMealDetails } from "../../hooks/useMealDetails";
+import { useFavorites } from "../../hooks/useFavorites";
+import "./mealView.css";
 
+/**
+ * Displays detailed information about a specific meal and allows the user to add or remove the meal from their favorites.
+ *
+ * @param {Object} props - The component props.
+ * @param {string} props.token - The authentication token for interacting with the favorites API.
+ * @returns {JSX.Element} The rendered MealView component.
+ */
 export const MealView = ({ token }) => {
   const { mealName } = useParams();
+  const { meal, loading, error: mealError } = useMealDetails(mealName);
+  const {
+    favoriteMeals,
+    addFavorite,
+    removeFavorite,
+    error: favoriteError,
+  } = useFavorites(token);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [meal, setMeal] = useState(null);
-  const [favoriteMeals, setFavoriteMeals] = useState([]);
 
+  /**
+   * Updates the `isFavorite` state if the current meal is in the user's favorites.
+   */
   useEffect(() => {
-    fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${mealName}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.meals && data.meals.length > 0) {
-          const mealDetails = {
-            id: data.meals[0].idMeal,
-            name: data.meals[0].strMeal,
-            image: data.meals[0].strMealThumb,
-            category: data.meals[0].strCategory,
-            area: data.meals[0].strArea,
-            source: data.meals[0].strSource,
-            video: data.meals[0].strYoutube,
-            instructions: data.meals[0].strInstructions,
-            ingredients: Object.keys(data.meals[0])
-              .filter(
-                (key) => key.startsWith("strIngredient") && data.meals[0][key]
-              )
-              .map((key) => data.meals[0][key]),
-          };
-          setMeal(mealDetails);
-        }
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  }, [mealName]);
-
-  useEffect(() => {
-    if (token) {
-      fetch("https://dishdelight-backend.onrender.com/favorites", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            if (response.statusText === "Forbidden") {
-              alert("Your login session has expired. Please log in again.");
-            } else throw new Error("Failed to fetch favorites");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setFavoriteMeals(data);
-          // Set isFavorite based on fetched favorites
-          if (meal) {
-            const isFav = data.some((favMeal) => favMeal.meal_id === meal.id);
-            setIsFavorite(isFav);
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+    if (meal && favoriteMeals.some((favMeal) => favMeal.meal_id === meal.id)) {
+      setIsFavorite(true);
     }
-  }, [token, meal]);
+  }, [meal, favoriteMeals]);
 
-  const addToFavorites = () => {
-    if (!token) {
-      alert("You need to be logged in to add favorites.");
-      return;
+  /**
+   * Handles adding the current meal to the user's favorites.
+   *
+   * @async
+   * @function
+   */
+  const handleAddToFavorites = async () => {
+    if (await addFavorite(meal)) {
+      setIsFavorite(true);
     }
-
-    fetch("https://dishdelight-backend.onrender.com/favorites", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        meal_id: meal.id,
-        meal_name: meal.name,
-        image_url: meal.image,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 409) {
-            alert("Meal already added to favorites.");
-          } else if (response.statusText === "Forbidden") {
-            alert("Your login session has expired. Please log in again.");
-          } else {
-            throw new Error("Failed to add meal to favorites");
-          }
-        }
-        return response.json();
-      })
-      .then(() => {
-        setIsFavorite(true);
-        setFavoriteMeals([...favoriteMeals, { meal_id: meal.id }]); // Add to favorites array
-        alert("Meal successfully added to favorites");
-      })
-      .catch((e) => {
-        console.log(e);
-      });
   };
 
-  const removeFromFavorites = () => {
-    if (!token) {
-      alert("You need to be logged in to remove favorites.");
-      return;
+  /**
+   * Handles removing the current meal from the user's favorites.
+   *
+   * @async
+   * @function
+   */
+  const handleRemoveFromFavorites = async () => {
+    if (await removeFavorite(meal.id)) {
+      setIsFavorite(false);
     }
-
-    fetch(`https://dishdelight-backend.onrender.com/favorites/${meal.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to remove meal from favorites");
-        }
-        return response.json();
-      })
-      .then(() => {
-        setIsFavorite(false);
-        setFavoriteMeals(
-          favoriteMeals.filter((favMeal) => favMeal.meal_id !== meal.id)
-        );
-        alert("Meal successfully removed from favorites");
-      })
-      .catch((e) => {
-        console.log(e);
-      });
   };
 
-  if (!meal) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
 
   return (
-    <Container className="d-flex justify-content-center my-5">
-      <Card style={{ width: "100%", maxWidth: "600px" }}>
+    <Container className="meal-view-container">
+      <Card className="meal-view-card">
         <Card.Img variant="top" src={meal.image} alt={meal.name} />
         <Card.Body>
           <Card.Title>{meal.name}</Card.Title>
@@ -171,22 +92,26 @@ export const MealView = ({ token }) => {
               </a>
             </Card.Text>
           )}
-          <div className="d-flex justify-content-between align-items-center mt-4">
+          <div className="meal-view-actions">
             <Link to={`/`} className="btn btn-secondary">
               Back
             </Link>
 
             {isFavorite ? (
-              <Button variant="danger" onClick={removeFromFavorites}>
+              <Button variant="danger" onClick={handleRemoveFromFavorites}>
                 Remove from Favorites
               </Button>
             ) : (
-              <Button variant="primary" onClick={addToFavorites}>
+              <Button variant="primary" onClick={handleAddToFavorites}>
                 Add to Favorites
               </Button>
             )}
           </div>
         </Card.Body>
+
+        {(mealError || favoriteError) && (
+          <Alert variant="danger">{mealError || favoriteError}</Alert>
+        )}
       </Card>
     </Container>
   );
